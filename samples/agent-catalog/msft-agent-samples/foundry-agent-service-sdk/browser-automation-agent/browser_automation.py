@@ -21,8 +21,8 @@ USAGE:
        Azure AI Foundry project.
     2) MODEL_DEPLOYMENT_NAME - The deployment name of the AI model, as found under the "Name" column in 
        the "Models + endpoints" tab in your Azure AI Foundry project.
-    3) PLAYWRIGHT_CONNECTION_ID - The connection ID of the Serverless connection containing the details
-         of the Playwright browser.
+    3) PLAYWRIGHT_WORKSPACE_CONNECTION_ID - The connection ID of the Serverless connection containing the details
+         of the Playwright Workspace remote browsers.
          Format: <AI Project resource ID>/connections/<Serverless connection name>
          Example: /subscriptions/<subscription-id>/resourceGroups/<resource_group_name>/providers/Microsoft.CognitiveServices/accounts/<account_name>/projects/<project_name>/connections/<connection-name>
 """
@@ -38,7 +38,7 @@ from typing import Any, Dict
 # <client_initialization>
 endpoint = environ["PROJECT_ENDPOINT"]
 model_deployment_name = environ["MODEL_DEPLOYMENT_NAME"]
-playwright_connection_id = getenv("PLAYWRIGHT_CONNECTION_ID")
+playwright_workspace_connection_id = getenv("PLAYWRIGHT_WORKSPACE_CONNECTION_ID")
 
 
 with AgentsClient(
@@ -53,7 +53,7 @@ with AgentsClient(
         "type": "browser_automation",
         "browser_automation": {
             "connection": {
-                "id": playwright_connection_id,
+                "id": playwright_workspace_connection_id,
             }
         }
     }
