@@ -52,17 +52,17 @@ The agent is configured through a Python script (`browser_automation.py`) and au
       - AI Project
       - Model deployment
 3. Playwright Workspace Resource setup: 
-   - Create a Playwright Workspace Resource: **TBU: arysingh** https://learn.microsoft.com/en-us/azure/playwright-testing/how-to-manage-playwright-workspace?tabs=playwright
-   - Generate an Access Token for the Playwright Workspace resource: **TBU: arysingh** https://learn.microsoft.com/en-us/azure/playwright-testing/how-to-manage-access-tokens
+   - Create a Playwright Workspace Resource: https://aka.ms/pww/docs/manage-workspaces
+   - Generate an Access Token for the Playwright Workspace resource: https://aka.ms/pww/docs/manage-access-tokens
    - Access the Workspace region endpoint from the Workspace Details. 
-   - Give the Project Identity a "Contributor" role on the Playwright Workspace resource, or configure a custom role by following these instructions: **TBU: arysingh** https://github.com/Azure/playwright-workspaces/blob/develop/how-to-manage-workspace-access.md#create-a-custom-role-for-restricted-tenants 
+   - Give the Project Identity a "Contributor" role on the Playwright Workspace resource, or configure a custom role by following these instructions: https://aka.ms/pww/docs/manage-workspace-access
 4. Create a serverless connection in the Azure AI Foundry project with the Playwright workspace region endpoint and the Playwright Workspace Access Token. 
    - Go to the Azure AI Foundry portal and select your AI Project. Go to the Management center and Click connected resources.
    - Create a new connection of type Serverless Model and enter the following information.
       - Target URI - Playwright Workspace Region Endpoint (example - wss://eastus.api.playwright.microsoft.com/accounts/eastus_xxxxxxxxxxxxxxxxxxxxxxx/browsers).
-         - To understand more on how to get this value: **TBU: arysingh** https://github.com/Azure/playwright-workspaces/blob/develop/quickstart-run-end-to-end-tests.md#configure-the-service-region-endpoint
+         - To understand more on how to get this value: https://aka.ms/pww/docs/configure-service-endpoint
       - Key - Playwright Access Token
-         - To understand more on how to get this value: **TBU: arysingh** https://github.com/Azure/playwright-workspaces/blob/develop/how-to-manage-access-tokens.md#generate-a-workspace-access-token
+         - To understand more on how to get this value: https://aka.ms/pww/docs/generate-access-token
    - For more info to create a connection, see [Create a connection](https://learn.microsoft.com/azure/ai-foundry/how-to/connections-add)
 5. Python 3.8+
 6. Azure CLI

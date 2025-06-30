@@ -5,9 +5,9 @@
 In the appsettings.json, set a value for \"PlaywrightConnectionResourceId\" to ehe connection ID of the Serverless connection containing the details
 of the Playwright Workspace browser.
 Format: <AI Project resource ID>/connections<Serverless connection name>
-- Creating a Playwright Workspace Resource: **TBU: arysingh** https://learn.microsoft.com/en-us/azure/playwright-testing/how-to-manage-playwright-workspace?tabs=playwright
-- Give the Project Identity a "Contributor" role on the Playwright Workspace resource, or configure a custom role by following these instructions: **TBU: arysingh** https://github.com/Azure/playwright-workspaces/blob/develop/how-to-manage-workspace-access.md#create-a-custom-role-for-restricted-tenants 
-- Generate an Access Token for the Playwright Workspace resource: **TBU: arysingh** https://learn.microsoft.com/en-us/azure/playwright-testing/how-to-manage-access-tokens
+- Creating a Playwright Workspace Resource: https://aka.ms/pww/docs/manage-workspaces
+- Give the Project Identity a "Contributor" role on the Playwright Workspace resource, or configure a custom role by following these instructions: https://aka.ms/pww/docs/manage-workspace-access
+- Generate an Access Token for the Playwright Workspace resource: https://aka.ms/pww/docs/generate-access-token
 - Create a serverless connection in the Azure AI Foundry project with the Playwright Workspace Browser endpoint and Access Token. 
 
 ## Azure.AI.Agents Sample Code
