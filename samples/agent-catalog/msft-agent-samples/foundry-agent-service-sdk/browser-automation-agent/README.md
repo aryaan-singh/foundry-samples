@@ -59,7 +59,7 @@ The agent is configured through a Python script (`browser_automation.py`) and au
 4. Create a serverless connection in the Azure AI Foundry project with the Playwright workspace region endpoint and the Playwright Workspace Access Token. 
    - Go to the Azure AI Foundry portal and select your AI Project. Go to the Management center and Click connected resources.
    - Create a new connection of type Serverless Model and enter the following information.
-      - Target URI - Playwright Workspace Region Endpoint (example - wss://eastus.api.playwright.microsoft.com/accounts/eastus_xxxxxxxxxxxxxxxxxxxxxxx/browsers).
+      - Target URI - Playwright Workspace Region Endpoint (example - wss://eastus.api.playwright.microsoft.com/playwrightworkspaces/eastus_xxxxxxxxxxxxxxxxxxxxxxx/browsers).
          - To understand more on how to get this value: https://aka.ms/pww/docs/configure-service-endpoint
       - Key - Playwright Access Token
          - To understand more on how to get this value: https://aka.ms/pww/docs/generate-access-token
