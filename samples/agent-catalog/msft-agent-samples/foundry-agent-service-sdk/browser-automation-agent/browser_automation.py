@@ -29,7 +29,7 @@ USAGE:
 
 # <imports>
 from os import environ, getenv
-from azure.ai.agents import AgentsClient
+from azure.ai.projects import AIProjectClient
 from azure.ai.agents.models import ListSortOrder
 from azure.identity import DefaultAzureCredential
 from typing import Any, Dict
@@ -41,10 +41,11 @@ model_deployment_name = environ["MODEL_DEPLOYMENT_NAME"]
 playwright_workspace_connection_id = getenv("PLAYWRIGHT_WORKSPACE_CONNECTION_ID")
 
 
-with AgentsClient(
+with AIProjectClient(
     endpoint=endpoint,
     credential=DefaultAzureCredential(exclude_interactive_browser_credential=False),
-) as agents_client:
+    api_version="2025-05-15-preview",
+).agents as agents_client:
 # </client_initialization>
     
     # [START create_agent_with_browser_automation_tool]
