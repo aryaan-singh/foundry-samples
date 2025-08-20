@@ -29,6 +29,8 @@ param aiSearchExists bool
 param azureStorageExists bool
 param cosmosDBExists bool
 
+param azureStorageQueues array = []
+
 var cosmosParts = split(cosmosDBResourceId, '/')
 
 resource existingCosmosDB 'Microsoft.DocumentDB/databaseAccounts@2024-11-15' existing = if (cosmosDBExists) {
@@ -128,6 +130,13 @@ resource storage 'Microsoft.Storage/storageAccounts@2023-05-01' = if(!azureStora
       virtualNetworkRules: []
     }
     allowSharedKeyAccess: false
+  }
+
+  resource queueServices 'queueServices' = if (!empty(azureStorageQueues)) {
+    name:'default'
+    resource queue 'queues' = [for queue in azureStorageQueues: {
+      name: queue
+    }]
   }
 }
 

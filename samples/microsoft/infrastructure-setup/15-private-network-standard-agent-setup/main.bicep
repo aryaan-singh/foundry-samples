@@ -89,6 +89,13 @@ param existingDnsZones object
 @description('Zone Names for Validation of existing Private Dns Zones')
 param dnsZoneNames array
 
+@description('Specifies if supporting resources for the Azure Function Tools should be created. This is only required if you are using the Azure Function Tools.')
+@allowed([
+  'Enabled'
+  'Disabled'
+])
+param azureFunctionToolSupport string = 'Disabled'
+
 
 var projectName = toLower('${firstProjectName}${uniqueSuffix}')
 var cosmosDBName = toLower('${aiServices}${uniqueSuffix}cosmosdb')
@@ -100,7 +107,7 @@ var storagePassedIn = azureStorageAccountResourceId != ''
 var searchPassedIn = aiSearchResourceId != ''
 var cosmosPassedIn = azureCosmosDBAccountResourceId != ''
 var existingVnetPassedIn = existingVnetResourceId != ''
-
+var azureFunctionToolSupported = (azureFunctionToolSupport == 'Enabled')
 
 var acsParts = split(aiSearchResourceId, '/')
 var aiSearchServiceSubscriptionId = searchPassedIn ? acsParts[2] : subscription().subscriptionId
@@ -190,6 +197,7 @@ module aiDependencies 'modules-network-secured/standard-dependent-resources.bice
     // Storage Account
     azureStorageAccountResourceId: azureStorageAccountResourceId
     azureStorageExists: validateExistingResources.outputs.azureStorageExists
+    azureStorageQueues: azureFunctionToolSupported ? ['azure-function-foo-input', 'azure-function-foo-output'] : []
 
     // Cosmos DB Account
     cosmosDBResourceId: azureCosmosDBAccountResourceId
@@ -237,6 +245,7 @@ module privateEndpointAndDNS 'modules-network-secured/private-endpoint-and-dns.b
       aiSearchResourceGroupName: aiSearchServiceResourceGroupName // Resource Group for AI Search Service
       storageAccountResourceGroupName: azureStorageResourceGroupName // Resource Group for Storage Account
       storageAccountSubscriptionId: azureStorageSubscriptionId // Subscription ID for Storage Account
+      createStorageAccountQueuePes: azureFunctionToolSupported
       existingDnsZones: existingDnsZones
     }
     dependsOn: [
@@ -296,6 +305,8 @@ module storageAccountRoleAssignment 'modules-network-secured/azure-storage-accou
   params: {
     azureStorageName: aiDependencies.outputs.azureStorageName
     projectPrincipalId: aiProject.outputs.projectPrincipalId
+
+    assignQueueContributorRole: azureFunctionToolSupported
   }
   dependsOn: [
    storage

@@ -1,6 +1,8 @@
 param azureStorageName string
 param projectPrincipalId string
 
+param assignQueueContributorRole bool = false
+
 resource storageAccount 'Microsoft.Storage/storageAccounts@2023-05-01' existing = {
   name: azureStorageName
   scope: resourceGroup()
@@ -19,6 +21,22 @@ resource storageBlobDataContributorRoleAssignmentProject 'Microsoft.Authorizatio
   properties: {
     principalId: projectPrincipalId
     roleDefinitionId: storageBlobDataContributor.id
+    principalType: 'ServicePrincipal'
+  }
+}
+
+// Queue Storage Contributor: 974c5e8b-45b9-4653-ba55-5f855dd0fb88
+resource storageQueueDataContributor 'Microsoft.Authorization/roleDefinitions@2022-05-01-preview' existing = {
+  name: '974c5e8b-45b9-4653-ba55-5f855dd0fb88'
+  scope: resourceGroup()
+}
+
+resource storageQueueDataContributorRoleAssignmentProject 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (assignQueueContributorRole) {
+  scope: storageAccount
+  name: guid(projectPrincipalId, storageQueueDataContributor.id, storageAccount.id)
+  properties: {
+    principalId: projectPrincipalId
+    roleDefinitionId: storageQueueDataContributor.id
     principalType: 'ServicePrincipal'
   }
 }

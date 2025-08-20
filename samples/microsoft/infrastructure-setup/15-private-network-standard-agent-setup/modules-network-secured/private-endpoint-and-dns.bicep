@@ -69,8 +69,11 @@ param existingDnsZones object = {
   'privatelink.cognitiveservices.azure.com': ''
   'privatelink.search.windows.net': ''
   'privatelink.blob.${environment().suffixes.storage}': ''
+  'privatelink.queue.${environment().suffixes.storage}': ''
   'privatelink.documents.azure.com': ''
 }
+
+param createStorageAccountQueuePes bool = false
 
 // ---- Resource references ----
 resource aiAccount 'Microsoft.CognitiveServices/accounts@2023-05-01' existing = {
@@ -149,20 +152,40 @@ resource aiSearchPrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-05-01'
 
 /* -------------------------------------------- Storage Private Endpoint -------------------------------------------- */
 
-// Private endpoint for Storage Account
+// Private endpoint for Storage Account Blob
 // - Creates network interface in customer hub subnet
 // - Establishes private connection to blob storage
-resource storagePrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-05-01' = {
-  name: '${storageName}-private-endpoint'
+resource storageBlobPrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-05-01' = {
+  name: '${storageName}-blob-private-endpoint'
   location: resourceGroup().location
   properties: {
     subnet: { id: peSubnet.id } // Deploy in customer hub subnet
     privateLinkServiceConnections: [
       {
-        name: '${storageName}-private-link-service-connection'
+        name: '${storageName}-blob-private-link-service-connection'
         properties: {
           privateLinkServiceId: storageAccount.id // Target blob storage
           groupIds: [ 'blob' ]
+        }
+      }
+    ]
+  }
+}
+
+// Private endpoint for Storage Account Queue
+// - Creates network interface in customer hub subnet
+// - Establishes private connection to blob storage
+resource storageQueuePrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-05-01' = if (createStorageAccountQueuePes) {
+  name: '${storageName}-queue-private-endpoint'
+  location: resourceGroup().location
+  properties: {
+    subnet: { id: peSubnet.id } // Deploy in customer hub subnet
+    privateLinkServiceConnections: [
+      {
+        name: '${storageName}-queue-private-link-service-connection'
+        properties: {
+          privateLinkServiceId: storageAccount.id // Target queue storage
+          groupIds: [ 'queue' ]
         }
       }
     ]
@@ -201,7 +224,8 @@ var aiServicesDnsZoneName = 'privatelink.services.ai.azure.com'
 var openAiDnsZoneName = 'privatelink.openai.azure.com'
 var cognitiveServicesDnsZoneName = 'privatelink.cognitiveservices.azure.com'
 var aiSearchDnsZoneName = 'privatelink.search.windows.net'
-var storageDnsZoneName = 'privatelink.blob.${environment().suffixes.storage}'
+var storageBlobDnsZoneName = 'privatelink.blob.${environment().suffixes.storage}'
+var storageQueueDnsZoneName = 'privatelink.queue.${environment().suffixes.storage}'
 var cosmosDBDnsZoneName = 'privatelink.documents.azure.com'
 
 // ---- DNS Zone Resource Group lookups ----
@@ -209,7 +233,8 @@ var aiServicesDnsZoneRG = existingDnsZones[aiServicesDnsZoneName]
 var openAiDnsZoneRG = existingDnsZones[openAiDnsZoneName]
 var cognitiveServicesDnsZoneRG = existingDnsZones[cognitiveServicesDnsZoneName]
 var aiSearchDnsZoneRG = existingDnsZones[aiSearchDnsZoneName]
-var storageDnsZoneRG = existingDnsZones[storageDnsZoneName]
+var storageBlobDnsZoneRG = existingDnsZones[storageBlobDnsZoneName]
+var storageQueueDnsZoneRG =  existingDnsZones[storageQueueDnsZoneName]
 var cosmosDBDnsZoneRG = existingDnsZones[cosmosDBDnsZoneName]
 
 // ---- DNS Zone Resources and References ----
@@ -265,18 +290,29 @@ resource existingAiSearchPrivateDnsZone 'Microsoft.Network/privateDnsZones@2020-
 //creating condition if user pass existing dns zones or not
 var aiSearchDnsZoneId = empty(aiSearchDnsZoneRG) ? aiSearchPrivateDnsZone.id : existingAiSearchPrivateDnsZone.id
 
-resource storagePrivateDnsZone 'Microsoft.Network/privateDnsZones@2020-06-01' = if (empty(storageDnsZoneRG)) {
-  name: storageDnsZoneName
+resource storageBlobPrivateDnsZone 'Microsoft.Network/privateDnsZones@2020-06-01' = if (empty(storageBlobDnsZoneRG)) {
+  name: storageBlobDnsZoneName
   location: 'global'
 }
 
-// Reference existing private DNS zone if provided
-resource existingStoragePrivateDnsZone 'Microsoft.Network/privateDnsZones@2020-06-01' existing = if (!empty(storageDnsZoneRG)) {
-  name: storageDnsZoneName
-  scope: resourceGroup(storageDnsZoneRG)
+resource existingStorageBlobPrivateDnsZone 'Microsoft.Network/privateDnsZones@2020-06-01' existing = if (!empty(storageBlobDnsZoneRG)) {
+  name: storageBlobDnsZoneName
+  scope: resourceGroup(storageBlobDnsZoneRG)
 }
 //creating condition if user pass existing dns zones or not
-var storageDnsZoneId = empty(storageDnsZoneRG) ? storagePrivateDnsZone.id : existingStoragePrivateDnsZone.id
+var storageBlobDnsZoneId = empty(storageBlobDnsZoneRG) ? storageBlobPrivateDnsZone.id : existingStorageBlobPrivateDnsZone.id
+
+resource storageQueuePrivateDnsZone 'Microsoft.Network/privateDnsZones@2020-06-01' = if (empty(storageQueueDnsZoneRG) &&  createStorageAccountQueuePes) {
+  name: storageQueueDnsZoneName
+  location: 'global'
+}
+
+resource existingStorageQueuePrivateDnsZone 'Microsoft.Network/privateDnsZones@2020-06-01' existing = if (!empty(storageQueueDnsZoneRG) && createStorageAccountQueuePes) {
+  name: storageQueueDnsZoneName
+  scope: resourceGroup(storageQueueDnsZoneRG)
+}
+//creating condition if user pass existing dns zones or not
+var storageQueueDnsZoneId = createStorageAccountQueuePes ? (empty(storageQueueDnsZoneRG) ? storageQueuePrivateDnsZone.id : existingStorageQueuePrivateDnsZone.id) : ''
 
 resource cosmosDBPrivateDnsZone 'Microsoft.Network/privateDnsZones@2020-06-01' = if (empty(cosmosDBDnsZoneRG)) {
   name: cosmosDBDnsZoneName
@@ -328,10 +364,19 @@ resource aiSearchLink 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@202
     registrationEnabled: false
   }
 }
-resource storageLink 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2024-06-01' = if (empty(storageDnsZoneRG)) {
-  parent: storagePrivateDnsZone
+resource storageBlobLink 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2024-06-01' = if (empty(storageBlobDnsZoneRG)) {
+  parent: storageBlobPrivateDnsZone
   location: 'global'
-  name: 'storage-${suffix}-link'
+  name: 'storage-blob-${suffix}-link'
+  properties: {
+    virtualNetwork: { id: vnet.id }
+    registrationEnabled: false
+  }
+}
+resource storageQueueLink 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2024-06-01' = if (empty(storageQueueDnsZoneRG) && createStorageAccountQueuePes) {
+  parent: storageQueuePrivateDnsZone
+  location: 'global'
+  name: 'storage-queue-${suffix}-link'
   properties: {
     virtualNetwork: { id: vnet.id }
     registrationEnabled: false
@@ -376,16 +421,28 @@ resource aiSearchDnsGroup 'Microsoft.Network/privateEndpoints/privateDnsZoneGrou
     empty(aiSearchDnsZoneRG) ? aiSearchLink : null
   ]
 }
-resource storageDnsGroup 'Microsoft.Network/privateEndpoints/privateDnsZoneGroups@2024-05-01' = {
-  parent: storagePrivateEndpoint
-  name: '${storageName}-dns-group'
+resource storageBlobDnsGroup 'Microsoft.Network/privateEndpoints/privateDnsZoneGroups@2024-05-01' = {
+  parent: storageBlobPrivateEndpoint
+  name: '${storageName}-blob-dns-group'
   properties: {
     privateDnsZoneConfigs: [
-      { name: '${storageName}-dns-config', properties: { privateDnsZoneId: storageDnsZoneId } }
+      { name: '${storageName}-dns-config', properties: { privateDnsZoneId: storageBlobDnsZoneId } }
     ]
   }
   dependsOn: [
-    empty(storageDnsZoneRG) ? storageLink : null
+    empty(storageBlobDnsZoneRG) ? storageBlobLink : null
+  ]
+}
+resource storageQueueDnsGroup 'Microsoft.Network/privateEndpoints/privateDnsZoneGroups@2024-05-01' = if (createStorageAccountQueuePes) {
+  parent: storageQueuePrivateEndpoint
+  name: '${storageName}-queue-dns-group'
+  properties: {
+    privateDnsZoneConfigs: [
+      { name: '${storageName}-dns-config', properties: { privateDnsZoneId: storageQueueDnsZoneId } }
+    ]
+  }
+  dependsOn: [
+    empty(storageQueueDnsZoneRG) ? storageQueueLink : null
   ]
 }
 resource cosmosDBDnsGroup 'Microsoft.Network/privateEndpoints/privateDnsZoneGroups@2024-05-01' = {
