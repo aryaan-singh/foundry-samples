@@ -27,7 +27,8 @@ param existingDnsZones = {
   'privatelink.openai.azure.com': ''
   'privatelink.cognitiveservices.azure.com': ''               
   'privatelink.search.windows.net': ''           
-  'privatelink.blob.core.windows.net': ''                            
+  'privatelink.blob.core.windows.net': ''
+  'privatelink.queue.core.windows.net': ''   
   'privatelink.documents.azure.com': ''                       
 }
 
@@ -38,6 +39,7 @@ param dnsZoneNames = [
   'privatelink.cognitiveservices.azure.com'
   'privatelink.search.windows.net'
   'privatelink.blob.core.windows.net'
+  'privatelink.queue.core.windows.net'
   'privatelink.documents.azure.com'
 ]
 
